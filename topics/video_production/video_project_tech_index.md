@@ -1,10 +1,12 @@
 # 视频项目技术索引
 
-更新：2026-10-25。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
+更新：2026-11-01。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
 
 本次整理依据 2026-10-22、23 日已完成的源码核查与成片比较，及已确认的项目资料；不是重新运行全部项目。未恢复的成片文件名、版本号、音源或规格明确留空，不凭同源关系补全。排除 devteamdrew 在 X 分享、制作方式未确认的视频。
 
 2026-10-25 增量核查重力乐园的当前源码、构建数据和发布产物，并补充横向选型建议；其余项目继续沿用各自标注的历史证据日期。此次未重建场景或重渲全片。
+
+2026-11-01 增量核查《一只纸鸟》v1.0.0 的源码、方案与 Release 元数据，补充 Three.js 立体书、共享事件表及录音拟音／采样配乐路线；未独立实测发布视频或重跑项目质检。其他项目的历史证据日期与验证范围不变。
 
 ## 已核对的成片仓库
 
@@ -151,6 +153,23 @@
 - 源码证据（均固定于上述提交）：[构建入口](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/run_pipeline.sh#L8-L14)、[拍点与音符](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/timeline.py#L5-L46)、[轨迹反算](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/physics.py#L111-L183)、[Bullet 仿真与调间距](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/sim_dominoes.py#L13-L131)、[骨牌结果写入与摄影调用](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/build_scene.py#L446-L495)。
 - 材质、摄影与音频证据：[材质库](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/build_scene.py#L24-L78)、[材质节点与贴图](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/blib.py#L34-L112)、[第三方素材记录](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/THIRD_PARTY_NOTICES.md#L3-L14)、[分镜与轮廓光](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/build_camera_lights.py#L79-L213)、[事件匹配与声像](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/extract_events.py#L94-L151)、[音色分派](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/synth_audio.py#L49-L147)、[混响与响度](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/synth_audio.py#L183-L250)、[渲染设置](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/render_setup.py#L7-L28)、[续渲保护](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/render.sh#L27-L47)、[编码](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/scripts/encode_final.sh#L7-L15)、[同步数据](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/build/sync_report.md#L3-L7)。
 
+### 一只纸鸟（A Paper Bird）
+
+- 仓库：[SherlockGy/a-paper-bird](https://github.com/SherlockGy/a-paper-bird)。核对提交：`38f6c7be548e0790bd48f77f7431f113bbf97f15`（2026-10-31 15:34:34 UTC）；核查日期：2026-11-01。
+- 发布版本：[v1.0.0](https://github.com/SherlockGy/a-paper-bird/releases/tag/v1.0.0)，2026-10-31 15:37:39 UTC 发布，指向上述提交。资产 [`paper_popup_book.mp4`](https://github.com/SherlockGy/a-paper-bird/releases/download/v1.0.0/paper_popup_book.mp4) 的 Release 元数据为 43,767,645 字节、SHA-256 `498b1f14e122c2bff5f0701fb625a624bb07b378db5a97c5931cdc05f0e18a6f`；本次未下载成片重算哈希或运行 ffprobe。README 声明成片为 52 秒、1920×1080、24 fps、1248 帧，H.264 High / AAC-LC 320 kb/s、48 kHz 立体声；源码的时间轴与编码设置与这些目标一致，不能替代对发布文件的独立实测。
+- 作品方案：台灯下的旧立体书自动翻开，种子长成树、开花，纸鸟从花中展开，飞过大海、小镇，夜里回家，合书收尾。封面加四个跨页及封底；翻页前立体件依次折平。时间线：0–3 秒封面；3–9 秒萌芽；9–15 秒开花与起飞；15–17 秒翻页；17–25 秒大海；25–27 秒翻页；27–35 秒小镇；35–37 秒翻页；37–45 秒夜归；45–52 秒合书。
+- 引擎与素材：Three.js 程序化真实三维立体书场景，WebGLRenderer 与后期链，不是 Remotion、Blender 或二维 PNG 纸偶拼装。纸件、书页、拉条、纸鸟和纹理由代码生成；文字依赖系统字体。默认后期含 GTAO 与 Bokeh，Bloom 仅在查询参数开启时加入。这里的“定格风格”是作品描述，不表示代码使用 12 fps 重复帧。
+- 动画驱动：`src/score.py` 以 120 BPM / 24 fps 编写 `scene/events.json`，一小节 2 秒、48 帧，十六分音符 3 帧；事件附整数帧并断言时间一致。物件弹起／折平、拉条、翻页、振翅等按事件与预设路径计算状态；这是编排式运动，不是由自由动力学仿真自然产生剧情。尺寸按 `2^((96-midi)/12)` cm 与音高映射，尺寸加倍低一个八度；振翅和窗板高度按 `midi-66` cm 映射。
+- 声音：真实纸张拟音与独立配乐两层，不同于重力乐园的纯事件合成声音。拟音以随仓库的 87 个 CC0 one-shot 录音为主，星星另叠少量合成泛音；按物件尺寸变调，以事件时间对齐瞬态，并含 ±3 ms 的微抖动及部分动作提前量；`probe` 将物件投影到当帧屏幕，声像按横坐标的 1.3 倍并限制在 ±0.95。配乐由 sfizz 1.2.3 VST3 经 pedalboard 播放 VSCO 2 CE 采样，含立式钢琴、小提琴／中提琴／大提琴弦乐，夜景加入钟琴；不是 SoundFont 或 TTS。弦乐增益与灯光共用事件表的 `light` 曲线。
+- 实际构建入口：`build.sh` 按需安装本地依赖后，执行 `score.py → render.mjs probe → render_audio.py → mix.py → render.mjs video → FFmpeg 两遍编码`。Puppeteer 调用系统 Chrome，逐帧执行 `window.renderAt(f)`，从 canvas 导出 JPEG，经 image2pipe 送 FFmpeg 生成画面母版；没有先部署网站或人工实时录屏的步骤。
+- 输出设置：画面母版默认 CRF 19；最终 libx264 两遍 6.4 Mb/s、yuv420p，AAC 320 kb/s、48 kHz，优先 Apple `aac_at`，不可用时回退 `aac`。母带为 48 kHz / 24-bit，拟音相对配乐默认 −3.5 LU，轻压缩、真峰值限幅及两遍线性 loudnorm，目标 −14 LUFS / −1 dBTP。README 报告发布成片 −13.9 LUFS、−1.9 dBTP、LRA 3.3 LU；这些是项目报告值，本次没有重新测量。
+- 校验与边界：源码提供逐帧三角面相交、声画同步、瞬态、声像、底噪与复现比较工具。README 报告 1248 帧、228,951 对实体检查零穿透；224 个单独发声事件峰值误差 −29.35 至 +2.90 ms，均小于一帧，混合分轨另有 4 个峰值超一帧，归因为相邻更响击打。这些是作者参考结果，非本次运行结果；贴面与边接触不计穿透，发光贴片不参与。
+  - 只在 macOS / Apple Silicon 测试；Linux 渲染路径虽已预留，不代表已验证跨平台。sfizz 状态格式绑定 1.2.3；换字体也会改变画面。
+  - README 报告声音在测试环境可逐样本复现；画面因 GPU 与 `edgeTex` 未固定种子的 `Math.random()` 不逐比特一致。不能承诺重建 MP4 与发布资产哈希相同。
+  - 已知 hillB 的画面尺寸 12.4 cm 与事件表 14.254 cm 不一致，声音按后者变调；修改事件顺序后须重建并核对按序号索引的 `clip_gain.json`，改 BPM 还要调整按秒定义的相机关键帧。
+- 许可：拟音与 VSCO 采样列为 CC0，Three.js 为 MIT，Puppeteer 为 Apache-2.0；sfizz VST3 包及部分音频依赖另有 GPL 等许可。项目本身的代码与成片未指定许可证，不能因素材是 CC0 或仓库公开就归类为整片／整仓可自由复用。
+- 固定版本证据：[作品方案与参考检查](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/README.md)、[构建与最终编码](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/build.sh)、[事件与分段](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/score.py)、[三维场景](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/scene/main.js)、[浏览器导帧](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/scene/render.mjs)、[拟音与采样配乐](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/render_audio.py)、[混音母带](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/mix.py)。本次范围为读取上述源码、README 与 Release 元数据；未构建、重渲、听音或重新运行质检。
+
 ## 上传项目：点·线·面
 - 来源：用户上传压缩包；包内已有 点线面_v002.mp4。尚未恢复可核对的 GitHub 仓库地址，不按中文名猜 URL。
 - 规格：15 秒、1080p、60 fps，128 BPM。
@@ -180,10 +199,14 @@
 | 纸偶、插画叙事、信息图形 | Skia 或 Pillow / NumPy 的二维绘制与拼装 | 把投入放在素材、姿态、排版和镜头节奏；适合现成图片与程序图形，真实反射与三维接触需要另行处理 |
 | 程序线稿、水墨着色、手绘笔刷 | Canvas2D、自写 WebGL2、p5.js / p5.brush | 绘图风格与着色过程可直接编程；三维投影或 shader 效果的具体能力依各项目实现，不能据此推定有完整物理场景 |
 | 排版、终端、卡片与界面动效 | HTML / CSS / SVG + GSAP / HyperFrames | 可复用网页布局与时间轴；画面空间感和材质表现取决于代码，不自动具备 Blender 的几何、光照和接触计算 |
+| 立体书、纸件机关、动作拟音与独立配乐 | 一只纸鸟的 Three.js + 共享事件表 + 真实拟音 / SFZ 采样配乐 | 可统一三维纸件、拍点、屏幕声像和灯光曲线；运动仍需编排与几何检查，不是通用动力学系统；复现受浏览器 GPU、字体和音频插件版本约束 |
 | 机关、实体材质、空间交接与动作发声 | 重力乐园的 Blender + 解析轨迹 / Bullet + 事件音频 | 能统一几何、摄影、反射、景深和声音事件；需要维护模型、运动、镜头与合成音色，离线渲染成本更高，材质观感与动力学精度应分别判断 |
 
+- 一只纸鸟与重力乐园都围绕事件组织声画，但前者先写同一份事件表驱动画面与拟音，另叠独立采样配乐；后者从已写入场景的动画特征提取／匹配声音事件，并以合成音色构成声音。不要把“程序化”混同为同一种音源或接触验证。迁移纸鸟方案时优先复用事件结构、屏幕位置 probe 和分层混音思路，再单独适配纸件几何、摄影与素材许可。
 - 重力乐园可借鉴的组织方式是“共享时间轴 → 几何／运动 → 动画事件 → 声音 → 独立渲染与编码”，以及把对象音色标签、镜头参数、事件数据和质检数据显式保存。它当前是项目内脚本组合，不是其他作品可以直接接入的通用引擎。
 - 改 BPM、音符或机关尺寸时，要重新核对轨迹、骨牌传播、几何间隙、镜头和事件；共享时间轴减少手工对齐，但不保证换参数后仍满足原有运动约束。模态音色可复用合成方法，仍需为新物体选择分音、包络与力度映射。
 - 重力乐园保存的 M1 Pro 三个代表帧测试中，Cycles 64 spp 平均约 23.3 秒／帧，128 spp 约 40.0 秒／帧；这些是该场景当时的抽样记录，不能直接推定其他工程或整片实耗。渲染前先用代表镜头比较采样与材质，再决定画质和工期。[测试数据](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/build/bench_tiers.json#L1-L91)
 
 更新记录：2026-10-25 纳入重力乐园 v1.0.0 的实际管线、源码与产物证据，并补充按表达目标选型及复用边界；原有项目正文和证据日期保留。
+
+更新记录：2026-11-01 纳入《一只纸鸟》v1.0.0 的故事分段、实际 Three.js／Puppeteer 管线、拟音与采样配乐、发布元数据、已报告检查和复现／许可边界；补充横向选型，未更改原有项目的历史证据。
