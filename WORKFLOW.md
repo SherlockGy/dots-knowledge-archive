@@ -1,6 +1,6 @@
 # 知识归档工作流
 
-建立：2026-10-24；公开归档启用：2026-10-24；目录结构调整：2026-10-25（主题正文及证据日期不变）。
+建立：2026-10-24；公开归档启用：2026-10-24；目录结构调整：2026-10-25（主题正文及证据日期不变）；目录树补充：2026-11-04。
 
 ## 自然触发
 
@@ -33,7 +33,8 @@ dots-knowledge-archive/
     │   └── video_project_tech_index.md
     └── ai/
         ├── agent_skills_context_index.md
-        └── ai_productivity_levels.md
+        ├── ai_productivity_levels.md
+        └── moss_image_layout_prompting.md
 ```
 
 ### 新增、更新与迁移
@@ -58,3 +59,4 @@ dots-knowledge-archive/
 不覆盖未提交改动；需要隔离工作区时先取得授权再创建 Git worktree。不强推、不改写已发布历史，不用破坏性重置清理工作副本。
 
 首次发布为内容导出，远端历史从发布提交开始，不声称此前本地提交的原始 SHA 已被保留。此后以远端 Git 历史追踪公开档案版本；需要恢复工作副本时从仓库读取，不伪造缺失历史。
+
