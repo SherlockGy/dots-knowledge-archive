@@ -18,6 +18,8 @@
 | 入站消息频率限制 | 已关闭，`max_messages = 0` | 后台窗口时长仍显示 60 秒，但不再按它拦截消息 |
 | 普通微信文字回复预算 | 不计入主动推送预算 | 已升级到含修复版本；主动推送仍保留每 60 秒最多 60 条的本地配置 |
 | 日志级别 | `info` | 已从排障用 debug 调回，重启后没有继续输出 DEBUG 日志 |
+| 联网搜索与普通网页读取 | Exa MCP | 真实 Claude Code + 本地模型已完成搜索和网页读取；禁用内置 `WebSearch` |
+| 浏览器操作 | Playwright MCP，`--extension` | 沿用 Codex 本机扩展配置；已实测读取现有浏览器标签，四项工具配置自动允许 |
 
 两个“收到消息但没回复”的故障先后出现，原因不同：
 
@@ -35,6 +37,9 @@ flowchart LR
     C <--> A[Claude Code CLI]
     A <--> L[oMLX 本地模型服务]
     L <--> M[Qwen 模型]
+    A <--> E[Exa MCP 搜索与网页读取]
+    A <--> P[Playwright MCP]
+    P <--> R[现有 Chrome 或 Edge 浏览器]
     B[Web 管理后台] <--> C
 ```
 
@@ -43,6 +48,8 @@ flowchart LR
 | 微信通道 | 收发消息、登录状态、会话回复上下文 | `type = "weixin"`，网关 `https://ilinkai.weixin.qq.com` |
 | cc-connect | 调用 Agent、会话、消息展示、发送预算、Web 管理 | `~/.cc-connect/config.toml` |
 | Claude Code | 编码工具、权限交互、模型请求参数 | 由 cc-connect 启动的 `claude` 子进程 |
+| Exa MCP | 联网搜索、普通网页内容提取 | Claude Code 用户级 HTTP MCP：`https://mcp.exa.ai/mcp` |
+| Playwright MCP | 浏览器页面操作、动态或登录页面读取 | Claude Code 用户级 stdio MCP，使用本机浏览器扩展 |
 | oMLX | 加载模型、执行推理、应用模型模板与采样配置 | `http://127.0.0.1:8000` |
 | Web 管理 | 配置与查看 cc-connect | `http://localhost:9820/`；由同一个后台服务托管 |
 
@@ -58,6 +65,8 @@ flowchart LR
 | oMLX | 应用 `0.7.3`，构建 `3574` | 本机应用元数据、随应用安装的 Python 源码 |
 | 本地模型模板 | Qwen 模板支持 `xhigh`、`medium`、`low`，默认 `xhigh` | 实际模型的 `chat_template.jinja` 与 `tokenizer_config.json` |
 | 上游修复版本 | `v1.5.1-beta.4`，发布于 2026-10-26 | GitHub 发布记录；本机已安装并做有限回归 |
+| Exa MCP | 服务端报告 `3.5.0` | 真实 MCP 初始化与工具列表，当前返回搜索和网页读取两项工具 |
+| Playwright MCP | 服务端报告 `1.65.0-alpha-2026-10-30` | 真实 MCP 初始化；使用 `@latest` 启动，未固定 npm 包版本 |
 
 本地应用源码和模型模板没有对应的已核实上游提交，因此不把今天的 oMLX `main` 当成已安装代码。为后续复核保留以下内容指纹：
 
@@ -119,6 +128,8 @@ type = "claudecode"
 work_dir = "<项目绝对路径>"
 mode = "default"
 provider = "omlx-local"
+# 先按第 13 节接入 Exa，再禁用本地兼容链路无法执行的原生搜索。
+disallowed_tools = ["WebSearch"]
 
 [[projects.agent.providers]]
 name = "omlx-local"
@@ -480,16 +491,20 @@ window_secs = 60
 | 日志与入站频率限制 | 已改为 info、关闭入站限流，重启后管理 API 回读确认 |
 | 升级到含修复版本 | 已升级 beta.4；相关源码回归测试通过，Web 正常，一次真实微信发送已由用户确认收到，未做长期稳定性测试 |
 | 本轮备份清理 | 已按用户要求删除配置和升级备份，当前配置、程序及会话文件哈希未变化 |
+| Exa 搜索和网页读取 | 真实 Claude Code + 同一本地模型分别调用两项 MCP 工具成功，返回实际来源与网页内容 |
+| Playwright 浏览器读取 | 两个 MCP 均连接；真实 Claude Code + 本地模型在持久权限下调用 `browser_tabs` 成功 |
+| 四项 Playwright 自动允许规则 | 已配置并核对；只实测 `browser_tabs`，未执行导航、页面求值或任意浏览器代码 |
+| 微信端调用 MCP | 后台已重启且微信通道就绪；尚未完成从微信提问到 MCP 结果回传的端到端验收 |
 
 后续继续观察尾栏、连续多轮普通回复、主动推送预算、图片回复和权限交互。此次仍保留关闭尾栏，不把升级后的一次短对话声称为所有路径都已回归。不要为了验证普通对话而主动制造微信服务端限流，也不要把当前主动推送预算值当作通用最佳实践。
 
-## 12. Web 搜索能力实际来自哪里
+## 12. 接入 Exa 前：Web 搜索缺口如何定位
 
 微信中的联网能力要沿实际工具调用追踪。仅看到模型请求 `WebSearch` 或看到 oMLX 有搜索设置，不能证明它们已经接通。
 
-### 12.1 当前微信链路
+### 12.1 接入前的微信链路
 
-本次日志和 Claude 会话记录显示：
+接入 Exa 前的日志和 Claude 会话记录显示：
 
 ```text
 微信提问 → cc-connect → Claude Code → WebSearch
@@ -520,23 +535,158 @@ oMLX `convert_anthropic_tools_to_internal` 明确丢弃类型前缀为 `web_sear
 
 已读 `omlx/api/websearch_routes.py` 提供 `POST /v1/web/search` 和 `POST /v1/web/fetch`，调用 `omlx/websearch.py` 的搜索与取网页实现。其入口服务于 oMLX 聊天页面；没有因为设置 provider 就自动成为 Claude Code 的 WebSearch，也没有证据表明这次微信搜索调用了它们。
 
-因此当前状态是：**Claude Code 的原生 WebSearch 在本地兼容链路中未接通；实际用到过的是 WebFetch 读取搜索网页；oMLX 的 DDGS 搜索尚未接入微信助手。** 如果后续要提供稳定搜索，需要单独选择并接入搜索工具，再用真实结果、来源链接和失败返回进行验收。本次只诊断，没有修改搜索集成。
+以上是接入前的诊断基线。随后已按第 13 节安装 Exa MCP，由 Claude Code 执行搜索和取网页，再把真实结果交给本地模型。原生 WebSearch 的兼容问题仍然存在，因此当前配置将它禁用；oMLX 的 DDGS 入口也没有接入这条微信链路。
+
+## 13. Exa 与 Playwright MCP：安装、权限与验证
+
+### 13.1 配置分别放在哪里
+
+两个 MCP 都安装到 Claude Code 的 **user scope**，便于 cc-connect 启动的 Claude 子进程使用。沿用同一操作系统用户是本次验证的前提；不要把用户级配置误写成仅供某个项目使用的 `.mcp.json`。[Claude Code MCP 文档][claude-mcp]
+
+| 配置位置 | 本次变更及含义 |
+| --- | --- |
+| `~/.claude.json` | 添加 `exa` 和 `playwright`，两个服务均设置 `alwaysLoad: true`，直接加载工具定义 |
+| `~/.claude/settings.json` | 在 `permissions.allow` 追加四项 Playwright 工具；保留原有其他设置 |
+| `~/.claude/CLAUDE.md` | 追加联网搜索、网页读取和浏览器使用规则；保留原有指令 |
+| `~/.cc-connect/config.toml` | `[projects.agent.options]` 增加 `disallowed_tools = ["WebSearch"]` |
+| `~/.codex/config.toml` | 只读取现有 Playwright 启动配置和环境变量，未修改 |
+
+`alwaysLoad: true` 用于直接向本地模型提供工具定义，避免依赖延迟工具发现。本次两个服务均已连接；此配置不表示自动批准工具调用。密钥仅存本机环境配置，不复制到归档、回答或日志中。
+
+### 13.2 安装 Exa，并核对真实工具参数
+
+本次实际执行的 Claude Code 命令为：
+
+```bash
+claude mcp add --scope user --transport http exa https://mcp.exa.ai/mcp
+claude mcp get exa
+claude mcp list
+```
+
+随后在该服务配置中增加 `alwaysLoad: true`。本次直接连接官方地址成功，没有另外配置 Exa API key；这不构成无限额度或长期可用性的承诺。[Exa 官方安装说明][exa-mcp]
+
+以本次 `tools/list` 返回为准，工具及其参数如下：
+
+| 工具 | 必填参数 | 本次使用的可选参数 |
+| --- | --- | --- |
+| `web_search_exa` | `query`：搜索描述；`objective`：搜索目标、优先来源和需要提取的事实 | `numResults`：结果数量 |
+| `web_fetch_exa` | `urls`：网页地址数组 | `maxCharacters`：提取内容的字符数上限 |
+
+真实 Claude Code 工具名分别为 `mcp__exa__web_search_exa`、`mcp__exa__web_fetch_exa`。`objective` 在本次工具定义中是必填项，不能只传 `query`。后续服务升级应重新核对工具定义，避免沿用旧示例。
+
+### 13.3 Playwright 使用现有浏览器扩展
+
+从 Codex 的实际 Playwright 配置读取 `command`、`args` 和 `env`，迁入 Claude Code 用户级配置。本次除扩展令牌外，还复制了实际存在的 `PLAYWRIGHT_MCP_EXECUTABLE_PATH`。不要输出整个 Codex 配置或把令牌写进公开仓库。
+
+以下为脱敏后的两项服务结构，应合并到现有 `~/.claude.json`，保留其他字段和服务。占位字符串需要替换为本机读取的真实值，不能原样启动：
+
+```json
+{
+  "mcpServers": {
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp",
+      "alwaysLoad": true
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--extension"],
+      "env": {
+        "PLAYWRIGHT_MCP_EXTENSION_TOKEN": "<从本机 Codex 配置读取的扩展令牌>",
+        "PLAYWRIGHT_MCP_EXECUTABLE_PATH": "<与本机 Codex 配置一致的浏览器可执行文件路径>"
+      },
+      "alwaysLoad": true
+    }
+  }
+}
+```
+
+`--extension` 连接已有 Chrome 或 Edge 浏览器，依赖已安装的 Playwright 浏览器扩展。本次沿用现有环境，没有重新安装扩展，也没有创建新的浏览器配置目录。后台启动环境还需能找到 `npx`；终端可用不能单独证明后台 PATH 可用。[Playwright 官方仓库][playwright-mcp]
+
+### 13.4 将四项自动允许规则转换成 Claude Code 格式
+
+Codex 的 `approval_mode = "approve"` 配置不能原样放进 Claude Code。本次在 `~/.claude/settings.json` 的既有 `permissions.allow` 中追加以下四项，未使用全服务通配符，也未切换为跳过权限模式：[Claude Code 权限文档][claude-permissions]
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__browser_tabs",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_run_code_unsafe"
+    ]
+  }
+}
+```
+
+四项规则分别允许标签操作、导航、页面求值和运行浏览器代码。其他工具继续遵循原有权限规则；Exa 没有在本次加入持久自动允许列表。自动允许只决定工具审批流程，实际操作仍需符合用户当前任务的授权范围。
+
+### 13.5 CLAUDE.md 中补充使用规则
+
+本次追加的指令明确区分联网检索、普通网页提取和浏览器操作。以下为可复用的规则摘要，合并时应保留原有全局指令：
+
+```markdown
+# 联网搜索与网页读取
+
+- 本地模型通过 oMLX 使用 Claude Code，联网搜索使用 Exa MCP。
+- 搜索、时效核查和查找来源使用 web_search_exa；同时提供 query 和 objective。
+- 优先官方文档、官方仓库和原始研究，回答附实际取得的来源链接。
+- 普通网页内容使用 web_fetch_exa，urls 传数组，可用 maxCharacters 控制长度。
+- 不使用内置 WebSearch；不通过内置 WebFetch 抓取搜索引擎页面来替代 Exa。
+- Exa 失败或触发额度错误时明确说明未完成，不自动退回内置搜索，不把模型生成的工具调用文本当成检索结果。
+- 只有收到真实来源后才声称已核查；不向搜索服务提交密钥或无关私人信息。
+
+# 浏览器操作
+
+- 页面交互、动态内容和登录页面优先使用 Playwright MCP，通过 --extension 连接现有浏览器。
+- 四项已允许工具仍需遵循当前用户任务授权，其他工具按现有权限处理。
+- 扩展令牌只存本机 MCP 环境变量，不写入回答、日志或公开归档。
+```
+
+这两部分配合使用：`CLAUDE.md` 说明应该选什么工具，cc-connect 的 `disallowed_tools` 阻止当前链路中无法执行的内置 `WebSearch`。持久配置没有一并禁用内置 `WebFetch`，指令只禁止用它抓搜索引擎页面替代 Exa。
+
+### 13.6 实际验收与一次沙箱误判
+
+本次已完成以下验证，使用真实服务和真实本地模型，没有用 mock 返回代替：
+
+1. **连接与工具列表。**
+   - `claude mcp list` 显示 Exa 和 Playwright 均已连接。
+   - 分别初始化 MCP 并读取工具列表，核对真实工具名称和参数。
+2. **Exa 真实调用。**
+   - 通过 Claude Code 和同一本地 Qwen 模型搜索 Exa 官方安装说明。
+   - 实际调用 `web_search_exa`，随后用 `web_fetch_exa` 读取找到的官方页面。
+   - 两项工具均返回成功和真实内容，Claude 正常结束；测试临时只允许 Exa，禁用内置搜索、取网页等替代路径。
+3. **Playwright 持久权限。**
+   - 先直接读取已有浏览器标签，再通过 Claude Code 和本地模型调用 `browser_tabs`。
+   - 后一次没有临时传入工具允许参数，验证了已保存的自动允许规则；没有切换、关闭或修改标签。
+   - 未实际执行 `browser_navigate`、`browser_evaluate`、`browser_run_code_unsafe`，只核对其配置与工具名称。
+4. **后台生效。**
+   - 等待已有微信请求处理结束后执行一次 `cc-connect daemon restart`。
+   - 重启后 Web 返回 HTTP 200、微信通道就绪，原有安静显示、模型参数、日志和限流设置保留。
+   - 本轮未另发微信消息执行 MCP，微信端完整链路仍待验收。
+
+Playwright 的首次 Claude 验证在执行工具的文件系统沙箱内失败：`npx` 写 npm 缓存被拒绝，出现 `EPERM` 和 MCP 连接关闭。随后在正常用户执行环境重试成功，期间没有修改 npm 目录所有权、缓存路径或扩展令牌。因此不能据这次错误断言 npm 目录属于 root，也不应直接用 `chown` 处理。遇到同类问题应先区分执行沙箱、后台 PATH、MCP 启动和浏览器扩展连接四个环节。
 
 ### 版本记录
 
 - 2026-11-06：首次归档本地模型、Claude Code 与 cc-connect 的微信方案；补充两次不同故障、Web 与自动登录、显示开关、参数真实请求验证、多账号设计边界，以及上游修复进入 beta 版本的证据。
 - 2026-11-06：随后实际升级至 v1.5.1-beta.4，补充哈希校验和回归范围；日志恢复 info、关闭入站限流；核清原生 WebSearch、WebFetch 和 oMLX DDGS 三条不同路径。
 - 2026-11-06：完成用户确认后的备份清理，保留现用配置和会话，核对并整理归档正文与统一索引。
+- 2026-11-06：用户级安装 Exa 与 Playwright MCP，补充四项工具权限及全局使用规则，禁用内置 WebSearch；完成真实本地模型的搜索、取网页与标签读取验证，并重启后台加载配置。
 
 ## 说人话
 
 微信负责聊天入口，cc-connect 负责接线，Claude Code 负责工具和权限，oMLX 负责跑本地模型。接通以后，没回复也可能卡在尾栏或本地发送预算，不能一概认为模型没回答。
 
-本次已实现本地模型文字对话、Web 管理和 262144／32768／xhigh 的配置，随后升级到含修复的测试版本、关闭入站消息限流、恢复普通日志。普通回复不再挤占主动推送预算；联网搜索仍有独立的接入缺口，不能把模型说“搜索了”当作已经成功搜索。
+本次已实现本地模型文字对话、Web 管理和 262144／32768／xhigh 的配置，随后升级到含修复的测试版本、关闭入站消息限流、恢复普通日志。普通回复不再挤占主动推送预算。
+
+联网搜索和普通网页读取现在交给 Exa，浏览器页面操作交给 Playwright，Claude Code 负责调用它们并把结果交给本地模型。真实 CLI 调用已经通过；四项浏览器工具配置为自动允许，其中只实测了读取标签。微信里完整调用这两个 MCP 的体验还需单独验收。
 
 ## 来源
 
-cc-connect 旧版问题源码固定到 v1.5.0，升级行为补充固定 beta.4 源码；GitHub issue、PR 和发布记录核查于 2026-11-06。Claude Code 环境变量文档是当天官方页面。oMLX 和模型模板依据本机已安装文件与上文指纹，不冒充已固定的上游版本；联网工具行为另外对照本机会话记录，未公开私人检索内容。
+cc-connect 旧版问题源码固定到 v1.5.0，升级行为补充固定 beta.4 源码；GitHub issue、PR 和发布记录核查于 2026-11-06。Claude Code 环境变量、MCP 和权限文档，以及 Exa、Playwright 官方说明均为当次读取的页面。oMLX 和模型模板依据本机已安装文件与上文指纹，不冒充已固定的上游版本；联网工具行为另外对照本机真实调用记录，未公开私人检索内容。
 
 [install]: https://github.com/chenhg5/cc-connect/blob/17c61062c2f9ce9bcdd45a2082e491f9743a2770/INSTALL.md
 [weixin-doc]: https://github.com/chenhg5/cc-connect/blob/17c61062c2f9ce9bcdd45a2082e491f9743a2770/docs/weixin.md
@@ -558,3 +708,7 @@ cc-connect 旧版问题源码固定到 v1.5.0，升级行为补充固定 beta.4 
 [beta-claude]: https://github.com/chenhg5/cc-connect/blob/a35b769c3f06dedd63cfc55ee6ccbd1f45c95549/agent/claudecode/claudecode.go
 [beta-weixin]: https://github.com/chenhg5/cc-connect/blob/a35b769c3f06dedd63cfc55ee6ccbd1f45c95549/platform/weixin/weixin.go
 [beta-ratelimit]: https://github.com/chenhg5/cc-connect/blob/a35b769c3f06dedd63cfc55ee6ccbd1f45c95549/core/ratelimit.go
+[claude-mcp]: https://code.claude.com/docs/en/mcp
+[claude-permissions]: https://code.claude.com/docs/en/permissions
+[exa-mcp]: https://exa.ai/docs/reference/exa-mcp
+[playwright-mcp]: https://github.com/microsoft/playwright-mcp

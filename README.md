@@ -22,7 +22,7 @@ ChatGPT Dots 使用本仓库前，先阅读[知识归档工作流](WORKFLOW.md)�
 - [AI 提效在人、任务与企业之间的差异](topics/ai/ai_productivity_levels.md)：三层指标、净节省与系统转化、异步 Agent、任务选择、企业行动和智能体演进；关键词：AI 提效、任务交付、企业产出、异步协作；正文最后更新及研究基线均为 2026-10-24。
 
 - [MOSS-Image 布局提示词：JSON、坐标与 Prompt Enhancer](topics/ai/moss_image_layout_prompting.md)：当前公开格式、草稿与模型输入的坐标转换、可编译示例、尺寸变更、工具流程及实验性边界；关键词：MOSS-Image、Layout、JSON、bbox、xyxy、yxyx、Prompt Enhancer；正文最后更新及文档/源码核查基线均为 2026-11-04，含编译测试，未进行成图评测。
-- [本地模型 + Claude Code + cc-connect：微信接入与排障方案](topics/ai/local_model_claude_code_cc_connect.md)：oMLX 本地 Qwen 模型接入个人微信，含 262144／32768／xhigh 参数验证、用量查询死锁、发送预算、Web 自动登录、工具通知过滤、多账号边界及搜索链路缺口；关键词：本地模型、oMLX、Qwen、Claude Code、cc-connect、微信、ilink、WebSearch；正文最后更新及核查基线均为 2026-11-06，从 v1.5.0 实际升级至 v1.5.1-beta.4，含有限回归及入站限流、日志设置。
+- [本地模型 + Claude Code + cc-connect：微信接入与排障方案](topics/ai/local_model_claude_code_cc_connect.md)：oMLX 本地 Qwen 模型接入个人微信，含 262144／32768／xhigh 参数验证、用量查询死锁、发送预算、Web 自动登录、工具通知过滤、多账号边界，以及 Exa 搜索和 Playwright 浏览器 MCP 接入；关键词：本地模型、oMLX、Qwen、Claude Code、cc-connect、微信、ilink、Exa、Playwright、MCP；正文最后更新及核查基线均为 2026-11-06，从 v1.5.0 实际升级至 v1.5.1-beta.4，含有限回归、日志与限流设置、四项工具权限和真实本地模型调用验证。
 
 ## GitHub 归档与版本
 
