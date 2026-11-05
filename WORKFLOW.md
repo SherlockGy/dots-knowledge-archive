@@ -1,6 +1,6 @@
 # 知识归档工作流
 
-建立：2026-10-24；公开归档启用：2026-10-24；目录结构调整：2026-10-25（主题正文及证据日期不变）；目录树补充：2026-11-04。
+建立：2026-10-24；公开归档启用：2026-10-24；目录结构调整：2026-10-25（主题正文及证据日期不变）；目录树补充：2026-11-06。
 
 ## 自然触发
 
@@ -34,7 +34,8 @@ dots-knowledge-archive/
     └── ai/
         ├── agent_skills_context_index.md
         ├── ai_productivity_levels.md
-        └── moss_image_layout_prompting.md
+        ├── moss_image_layout_prompting.md
+        └── local_model_claude_code_cc_connect.md
 ```
 
 ### 新增、更新与迁移
