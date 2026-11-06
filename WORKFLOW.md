@@ -18,7 +18,7 @@
 
 - 根目录保留 `README.md`（导航）和 `WORKFLOW.md`（工作流与仓库维护）；工作流独立于知识主题。
 - 主题正文统一放在 `topics/<领域>/<主题>.md`，领域和文件名使用小写英文及下划线。
-  - `topics/video_production/`：视频制作方案、成片管线与项目比较。
+  - `topics/video_production/`：视频制作方案、成片管线、模型素材与项目比较。
   - `topics/ai/`：AI 与智能体的机制、使用方法及效率研究。
   - 新主题优先归入语义相符的已有领域；需要新领域时按内容新增，不固定领域或主题数量。
 - 默认保持“领域 → 主题文件”的层级，不为每个主题另建目录，也不按研究日期或版本复制正文。跨领域内容按主要用途选择一个归属，在索引中提供关键词，避免重复存放。
@@ -30,7 +30,8 @@ dots-knowledge-archive/
 ├── WORKFLOW.md
 └── topics/
     ├── video_production/
-    │   └── video_project_tech_index.md
+    │   ├── video_project_tech_index.md
+    │   └── three_d_model_resources.md
     └── ai/
         ├── agent_skills_context_index.md
         ├── ai_productivity_levels.md

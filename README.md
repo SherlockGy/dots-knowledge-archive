@@ -16,6 +16,8 @@ ChatGPT Dots 使用本仓库前，先阅读[知识归档工作流](WORKFLOW.md)�
 
 - [视频制作方案与项目](topics/video_production/video_project_tech_index.md)：实际成片引擎、素材、动画、声音与输出，含重力乐园的 Blender 三维与事件音频、《一只纸鸟》的 Three.js 立体书与录音拟音／采样配乐方案及横向选型；关键词：视频制作、成片管线、Blender、Three.js、共享事件表、拟音、导出；正文最后更新 2026-11-01，既有项目证据基线为 2026-10-22、23 日，重力乐园核查于 2026-10-25，一只纸鸟源码与发布元数据核查于 2026-11-01。
 
+- [Hugging Face 3D 模型资源：ABO 与 SimReady](topics/video_production/three_d_model_resources.md)：三个资源入口、官方与社区转换版关系、GLB／USD 格式、容量口径及 CC BY 4.0 署名要求；关键词：3D 模型、Hugging Face、ABO、SimReady、GLB、USD、Three.js、模型素材；正文最后更新及公开资料核查均为 2026-11-06，仅归档链接与使用说明，未全量下载或实测资产。
+
 ### AI 与智能体（ai）
 
 - [Agent Skills 加载与淘汰策略](topics/ai/agent_skills_context_index.md)：五个开源 Agent 的版本限定研究，基线为 2026-10-21 最终深读及后续纠正，不是今日重验；关键词：Agent、Skills、上下文、压缩、重载；正文最后更新 2026-10-24。
