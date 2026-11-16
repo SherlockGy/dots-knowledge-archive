@@ -1,12 +1,8 @@
 # 视频项目技术索引
 
-更新：2026-11-01。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
+更新：2026-11-16。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
 
-本次整理依据 2026-10-22、23 日已完成的源码核查与成片比较，及已确认的项目资料；不是重新运行全部项目。未恢复的成片文件名、版本号、音源或规格明确留空，不凭同源关系补全。排除 devteamdrew 在 X 分享、制作方式未确认的视频。
-
-2026-10-25 增量核查重力乐园的当前源码、构建数据和发布产物，并补充横向选型建议；其余项目继续沿用各自标注的历史证据日期。此次未重建场景或重渲全片。
-
-2026-11-01 增量核查《一只纸鸟》v1.0.0 的源码、方案与 Release 元数据，补充 Three.js 立体书、共享事件表及录音拟音／采样配乐路线；未独立实测发布视频或重跑项目质检。其他项目的历史证据日期与验证范围不变。
+既有项目以各条标注的源码、成片或发布元数据为证据，核查日期与实测范围分别保留；本文更新不代表重新运行全部项目。未恢复的文件名、版本、音源或规格不凭同源关系补全，制作方式未确认的外部演示不列入。
 
 ## 已核对的成片仓库
 
@@ -170,6 +166,15 @@
 - 许可：拟音与 VSCO 采样列为 CC0，Three.js 为 MIT，Puppeteer 为 Apache-2.0；sfizz VST3 包及部分音频依赖另有 GPL 等许可。项目本身的代码与成片未指定许可证，不能因素材是 CC0 或仓库公开就归类为整片／整仓可自由复用。
 - 固定版本证据：[作品方案与参考检查](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/README.md)、[构建与最终编码](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/build.sh)、[事件与分段](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/score.py)、[三维场景](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/scene/main.js)、[浏览器导帧](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/scene/render.mjs)、[拟音与采样配乐](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/render_audio.py)、[混音母带](https://github.com/SherlockGy/a-paper-bird/blob/38f6c7be548e0790bd48f77f7431f113bbf97f15/src/mix.py)。本次范围为读取上述源码、README 与 Release 元数据；未构建、重渲、听音或重新运行质检。
 
+### Gemini 4 Carbon
+
+- 仓库：[SherlockGy/gemini-carbon](https://github.com/SherlockGy/gemini-carbon)，核对提交：`bdd5dbb2da407e846536de17fb790b8e8909be83`；成片见 [v1.0.0](https://github.com/SherlockGy/gemini-carbon/releases/tag/v1.0.0)。92 秒、3840×2160、60 fps，H.264 + AAC、Rec.709 SDR。作品以碳原子、石墨烯、高压结晶和钻石色散表现智能，是程序制作的概念短片，不是文生视频或 Google 官方发布资料。
+- **画面分工**：Blender 5.2 / Cycles 经 Metal / MetalRT 渲染六组三维镜头，共 1770 帧、29.5 秒，以 AgX 管理颜色并输出 PNG 序列；Objective-C++ 接入这些底片，负责全片其余程序画面、辉光、镜头光效、转场、CoreText 字幕与最终合成，再送 FFmpeg 编码。不是整片 Blender，也不是三维版替换掉了原有合成引擎；源码内部高动态范围计算不等于 HDR 交付。
+- **声音分工**：Python / NumPy / SciPy 合成交响风格配乐、环境音与拟音；旁白使用 MiniMax `speech-2.8-hd` 的 `Chinese (Mandarin)_Gentle_Senior` 音色，13 段录音随仓库保存。人声处理含均衡、动态与饱和处理，居中干声另以 0.15 系数、45 ms 延迟送入卷积混响，并用旁白包络对音乐作频段让位。空间感不只来自 TTS 音色，也来自后期；这里描述代码机制，不把听感归因当成独立对照实验结论。
+- **换声与重渲分离**：当前交付保留定稿画面，再合入新的温柔女声混音。默认渲染使用随附的 `visual_envelopes_60fps.bin` 保持原画面的音频驱动参数；只有希望画面随新混音变化时，才重新生成并切换音频包络。音轨可以替换，不意味着画面应自动跟着新旁白重新运动。
+- **构建与存储**：`make build → make plates → make video`；合成前检查 1770 张 4K 帧和音频输入，缺失即停止。代码、旁白、当前母带与定稿画面包络入仓；约 41 GB 的可再生帧缓存不入 Git，原始 4K 成片放 Release 并附 SHA-256。保留复现输入，不必长期保存每一张中间帧。
+- **适用边界与证据**：Objective-C++ 依赖 Apple 框架，路线面向 macOS / Apple Silicon，不是跨平台方案；字体、编码器及 Blender 环境变化可能改变重建结果。本条于 2026-11-16 核对 [项目说明](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/README.md)、[Blender 镜头](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/render_blender_plates.py)、[合成引擎](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/carbon_engine.mm)、[声音处理](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/compose_score.py) 与 [构建入口](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/Makefile)，未为本次归档重新渲染全片或进行声音 A/B 测试。
+
 ## 上传项目：点·线·面
 - 来源：用户上传压缩包；包内已有 点线面_v002.mp4。尚未恢复可核对的 GitHub 仓库地址，不按中文名猜 URL。
 - 规格：15 秒、1080p、60 fps，128 BPM。
@@ -201,12 +206,11 @@
 | 排版、终端、卡片与界面动效 | HTML / CSS / SVG + GSAP / HyperFrames | 可复用网页布局与时间轴；画面空间感和材质表现取决于代码，不自动具备 Blender 的几何、光照和接触计算 |
 | 立体书、纸件机关、动作拟音与独立配乐 | 一只纸鸟的 Three.js + 共享事件表 + 真实拟音 / SFZ 采样配乐 | 可统一三维纸件、拍点、屏幕声像和灯光曲线；运动仍需编排与几何检查，不是通用动力学系统；复现受浏览器 GPU、字体和音频插件版本约束 |
 | 机关、实体材质、空间交接与动作发声 | 重力乐园的 Blender + 解析轨迹 / Bullet + 事件音频 | 能统一几何、摄影、反射、景深和声音事件；需要维护模型、运动、镜头与合成音色，离线渲染成本更高，材质观感与动力学精度应分别判断 |
+| 三维材质特写与程序图形、字幕混合的概念短片 | Carbon 的 Blender 镜头底片 + Objective-C++ 全片合成 + 分层声音 | 只把需要实体材质和镜头空间的段落交给 Blender，其余画面与后期保留程序控制；要统一帧率、颜色和片段边界，当前实现依赖 Apple 框架 |
 
 - 一只纸鸟与重力乐园都围绕事件组织声画，但前者先写同一份事件表驱动画面与拟音，另叠独立采样配乐；后者从已写入场景的动画特征提取／匹配声音事件，并以合成音色构成声音。不要把“程序化”混同为同一种音源或接触验证。迁移纸鸟方案时优先复用事件结构、屏幕位置 probe 和分层混音思路，再单独适配纸件几何、摄影与素材许可。
 - 重力乐园可借鉴的组织方式是“共享时间轴 → 几何／运动 → 动画事件 → 声音 → 独立渲染与编码”，以及把对象音色标签、镜头参数、事件数据和质检数据显式保存。它当前是项目内脚本组合，不是其他作品可以直接接入的通用引擎。
+- Carbon 可复用的是按镜头分配渲染器，而不是让一个引擎包办整片；也要把“听到的最终音轨”和“驱动画面的包络”作为两个版本明确的输入。只换配音时沿用定稿画面及其驱动数据；重新设计声画响应时才同步更新两者。
 - 改 BPM、音符或机关尺寸时，要重新核对轨迹、骨牌传播、几何间隙、镜头和事件；共享时间轴减少手工对齐，但不保证换参数后仍满足原有运动约束。模态音色可复用合成方法，仍需为新物体选择分音、包络与力度映射。
 - 重力乐园保存的 M1 Pro 三个代表帧测试中，Cycles 64 spp 平均约 23.3 秒／帧，128 spp 约 40.0 秒／帧；这些是该场景当时的抽样记录，不能直接推定其他工程或整片实耗。渲染前先用代表镜头比较采样与材质，再决定画质和工期。[测试数据](https://github.com/SherlockGy/gravity-playground/blob/c8a58514fbe55df48531616828f396c7379153e5/build/bench_tiers.json#L1-L91)
 
-更新记录：2026-10-25 纳入重力乐园 v1.0.0 的实际管线、源码与产物证据，并补充按表达目标选型及复用边界；原有项目正文和证据日期保留。
-
-更新记录：2026-11-01 纳入《一只纸鸟》v1.0.0 的故事分段、实际 Three.js／Puppeteer 管线、拟音与采样配乐、发布元数据、已报告检查和复现／许可边界；补充横向选型，未更改原有项目的历史证据。
