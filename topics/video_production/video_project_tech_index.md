@@ -1,6 +1,6 @@
 # 视频项目技术索引
 
-更新：2026-11-16。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
+更新：2026-11-18。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
 
 既有项目以各条标注的源码、成片或发布元数据为证据，核查日期与实测范围分别保留；本文更新不代表重新运行全部项目。未恢复的文件名、版本、音源或规格不凭同源关系补全，制作方式未确认的外部演示不列入。
 
@@ -175,6 +175,16 @@
 - **构建与存储**：`make build → make plates → make video`；合成前检查 1770 张 4K 帧和音频输入，缺失即停止。代码、旁白、当前母带与定稿画面包络入仓；约 41 GB 的可再生帧缓存不入 Git，原始 4K 成片放 Release 并附 SHA-256。保留复现输入，不必长期保存每一张中间帧。
 - **适用边界与证据**：Objective-C++ 依赖 Apple 框架，路线面向 macOS / Apple Silicon，不是跨平台方案；字体、编码器及 Blender 环境变化可能改变重建结果。本条于 2026-11-16 核对 [项目说明](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/README.md)、[Blender 镜头](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/render_blender_plates.py)、[合成引擎](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/carbon_engine.mm)、[声音处理](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/src/compose_score.py) 与 [构建入口](https://github.com/SherlockGy/gemini-carbon/blob/bdd5dbb2da407e846536de17fb790b8e8909be83/Makefile)，未为本次归档重新渲染全片或进行声音 A/B 测试。
 
+### Gemini 4 Hydrogen
+
+- 仓库：[SherlockGy/gemini-hydrogen](https://github.com/SherlockGy/gemini-hydrogen)，核查提交：`9dd6ec7abd3a7268df454b309dc21569f0dfefda`；核查日期：2026-11-18。README 声明成片为 90 秒、3840×2160、60 fps，并提供[母带与分享版下载](https://github.com/SherlockGy/gemini-hydrogen/releases/latest)；源码时间表为 12 镜、5400 帧。本次未下载发布 MP4 重测规格。作品用氢、轨道与恒星意象表现模型，是概念创作，不是 Google 官方资料或严格物理模拟。
+- **按画面类型分配计算**：五组实体材质镜头交给 Blender Cycles / MetalRT，七组粒子、丝带、轨道和星海镜头使用 MLX 张量运算与 NumPy；最后由 Python / Pillow / NumPy 统一叠化、光效、颗粒、字幕和编码。MLX 在这里是 GPU 数值绘图工具，不运行生成式模型；大量点通过投影与双线性散射写入像素。与 Carbon 的 Objective-C++ 全片合成不同，此处用 Python 接合两条渲染路线，不是把全部粒子建成 Blender 对象。
+- **底片与成片分辨率分开**：当前 Blender 代码实际输出 2560×1440、质量 96 的 JPEG，默认 28 spp 加 OIDN；合成时 Lanczos 放大到 4K，再加原生 4K 排版，MLX 画面直接按 4K 计算。README 所述 PNG 不符当前代码，不能把 4K 交付写成全部镜头原生 4K 路径追踪。五组 Blender 镜头含叠化预留共 2460 帧；部分剪辑点前后各预留 6 帧，在底片阶段做 12 帧叠化，再统一加后期。动态画幅通过黑边从 2.35:1 展开到 16:9，并非修改输出分辨率。
+- **声音不是纯波形交响乐**：14 轨 MIDI 由 FluidSynth 调用随仓 `MuseScore_General.sf3`，再以 Pedalboard 做分轨声像、均衡、动态与混响；另加程序生成的音效和 13 段已有女声。高潮采用句内音量曲线、音乐 Mid 中频让位、Side 扩宽与独立人声混响，而非仅压低整条音乐；母带以两遍 loudnorm 配置 −14.5 LUFS / −1 dBTP，属代码目标，未在本次重新测量听感或响度。
+- **时间与复用边界**：视觉函数按全局秒数／帧号求值，旁白、音乐和字幕另有时间安排；渲染器不读取最终音轨包络来驱动画面。它不同于 Carbon 保留画面包络的换声方案，也不同于纸鸟用共享事件表关联动作与拟音：可复用分镜表、镜头接口、后期及分层混音，但改台词或节奏须同步检查各处时间，不宜当作已抽象好的统一时间线框架。
+- **构建与恢复**：`make audio` 重建混音；`make video` 并行生成 Blender 底片，再逐镜合成、编码、拼接母带并转码分享版。输出为 H.264 High@L5.2、yuv420p、BT.709 SDR；内部浮点光效不等于 HDR 视频。当前跳过已有 JPEG／镜头 MP4 只按文件大小判断，缺少 Blender 帧时还可能以首／末帧代替；改源码后应隔离旧输出，并核对帧完整性和接片处，不能只凭入口末尾的 ffprobe 输出判定画面完成。MLX、MetalRT 与中文系统字体使复现面向 Apple Silicon / macOS，未验证跨平台。
+- 固定源码证据：[Blender 设置与底片生成](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/blender_cinema_shots.py)、[MLX 粒子绘图](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/mlx_quantum_cosmos.py)、[统一后期](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/optical_compositor.py)、[分镜与合成导出](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/master_render_and_assemble.py)、[音源与混音](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/build_master_audio.py)、[构建入口](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/render_all.sh)。本次核查 README、相关源码及时间表，不含完整渲染、成片视听或性能实测。
+
 ## 上传项目：点·线·面
 - 来源：用户上传压缩包；包内已有 点线面_v002.mp4。尚未恢复可核对的 GitHub 仓库地址，不按中文名猜 URL。
 - 规格：15 秒、1080p、60 fps，128 BPM。
@@ -207,6 +217,7 @@
 | 立体书、纸件机关、动作拟音与独立配乐 | 一只纸鸟的 Three.js + 共享事件表 + 真实拟音 / SFZ 采样配乐 | 可统一三维纸件、拍点、屏幕声像和灯光曲线；运动仍需编排与几何检查，不是通用动力学系统；复现受浏览器 GPU、字体和音频插件版本约束 |
 | 机关、实体材质、空间交接与动作发声 | 重力乐园的 Blender + 解析轨迹 / Bullet + 事件音频 | 能统一几何、摄影、反射、景深和声音事件；需要维护模型、运动、镜头与合成音色，离线渲染成本更高，材质观感与动力学精度应分别判断 |
 | 三维材质特写与程序图形、字幕混合的概念短片 | Carbon 的 Blender 镜头底片 + Objective-C++ 全片合成 + 分层声音 | 只把需要实体材质和镜头空间的段落交给 Blender，其余画面与后期保留程序控制；要统一帧率、颜色和片段边界，当前实现依赖 Apple 框架 |
+| 实体材质镜头与大规模粒子、星海混合的概念短片 | Hydrogen 的 Cycles 底片 + MLX 数值绘图 + Python 统一后期 | 按镜头类型和分辨率分配算力，避免所有画面都走路径追踪；需核对色调、叠化预留帧与多处时间安排，缓存有效性目前需人工管理 |
 
 - 一只纸鸟与重力乐园都围绕事件组织声画，但前者先写同一份事件表驱动画面与拟音，另叠独立采样配乐；后者从已写入场景的动画特征提取／匹配声音事件，并以合成音色构成声音。不要把“程序化”混同为同一种音源或接触验证。迁移纸鸟方案时优先复用事件结构、屏幕位置 probe 和分层混音思路，再单独适配纸件几何、摄影与素材许可。
 - 重力乐园可借鉴的组织方式是“共享时间轴 → 几何／运动 → 动画事件 → 声音 → 独立渲染与编码”，以及把对象音色标签、镜头参数、事件数据和质检数据显式保存。它当前是项目内脚本组合，不是其他作品可以直接接入的通用引擎。
