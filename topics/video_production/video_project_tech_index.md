@@ -1,6 +1,6 @@
 # 视频项目技术索引
 
-更新：2026-11-18。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
+更新：2026-11-24。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
 
 既有项目以各条标注的源码、成片或发布元数据为证据，核查日期与实测范围分别保留；本文更新不代表重新运行全部项目。未恢复的文件名、版本、音源或规格不凭同源关系补全，制作方式未确认的外部演示不列入。
 
@@ -185,6 +185,15 @@
 - **构建与恢复**：`make audio` 重建混音；`make video` 并行生成 Blender 底片，再逐镜合成、编码、拼接母带并转码分享版。输出为 H.264 High@L5.2、yuv420p、BT.709 SDR；内部浮点光效不等于 HDR 视频。当前跳过已有 JPEG／镜头 MP4 只按文件大小判断，缺少 Blender 帧时还可能以首／末帧代替；改源码后应隔离旧输出，并核对帧完整性和接片处，不能只凭入口末尾的 ffprobe 输出判定画面完成。MLX、MetalRT 与中文系统字体使复现面向 Apple Silicon / macOS，未验证跨平台。
 - 固定源码证据：[Blender 设置与底片生成](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/blender_cinema_shots.py)、[MLX 粒子绘图](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/mlx_quantum_cosmos.py)、[统一后期](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/optical_compositor.py)、[分镜与合成导出](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/master_render_and_assemble.py)、[音源与混音](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/build_master_audio.py)、[构建入口](https://github.com/SherlockGy/gemini-hydrogen/blob/9dd6ec7abd3a7268df454b309dc21569f0dfefda/scripts/render_all.sh)。本次核查 README、相关源码及时间表，不含完整渲染、成片视听或性能实测。
 
+### Gemini 4 Neon
+
+- 仓库：[SherlockGy/gemini-neon](https://github.com/SherlockGy/gemini-neon)，核查提交：`3b4856a59f406a01321293c6ede4ba816a9b7291`；核查日期：2026-11-24。用氖的惰性和激发态发光意象表现「至静 · 至纯」，是程序制作的概念短片，不是 Google 官方发布。源码时间表为 90 秒、12 镜、5400 帧；README 标注母带 2560×1440、60 fps，[成片下载](https://github.com/SherlockGy/gemini-neon/releases/latest)，原片 SHA-256 随仓库保存。
+- **同分辨率的两条绘图路线**：Blender / Cycles 用 MetalRT 渲染水晶、液滴和轨道破晓等五组实体材质镜头，产出 2560×1440 无损 PNG 底片；Apple MLX 以浮点 GPU 运算绘制其余七组粒子、丝带、星云和星海。两路在 Python 中按全局帧号合成；与 Hydrogen 的 1440p Blender 底片放大至 4K 不同，这版 Blender 底片与母带同为 1440p。
+- **高潮不是单一转场**：S08 → S09 以 54 秒的交响重拍对齐星云爆发和画幅展开。切点叠化、遮幅和音乐是独立控制：合成器在 53.96–54.64 秒收起 2.35:1 遮幅，露出完整 16:9 画面，文件分辨率不变。更换音乐或调整节奏时，要同时复核重拍、切点和遮幅曲线，不能只替换音轨。
+- **音乐驱动画面**：程序合成的弦乐、大鼓等与 FluidSynth 音色层混合，叠加随仓保存的 12 段女声；混音让出旁白占用的中频。音频脚本从音乐和瞬态轨导出逐帧四通道包络（低频、瞬态、中频、高频），MLX 和光学后期读取它调节光场及高光。区别于 Hydrogen 不消费音频包络；如果只换旁白并希望保持画面，应保留原驱动文件。
+- **构建与复用边界**：`make video` 先跑 Cycles 底片，再逐镜合成、编码和拼接为 H.264 High@L5.1 / AAC、BT.709 SDR；内部浮点光场不是 HDR 交付。`make audio` 可用已有旁白和随仓声库重建混音。当前缓存按片段文件大小决定跳过，缺少单帧还可能以首／末帧替代；改参数后宜隔离旧缓存并检查接片。可复用双引擎分工及帧级音画映射，目前不是通用时间线框架。
+- 固定源码证据：[Blender 底片](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/blender_cinema_shots.py)、[MLX 绘图](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/mlx_neon_cosmos.py)、[光学后期](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/optical_compositor.py)、[镜头与导出](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/master_render_and_assemble.py)、[声音与包络](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/build_master_audio.py)、[构建入口](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/Makefile)、[母版校验](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/SHA256SUMS)。本次核查 README、源码与时间表，未下载母版重测或重渲全片。
+
 ## 上传项目：点·线·面
 - 来源：用户上传压缩包；包内已有 点线面_v002.mp4。尚未恢复可核对的 GitHub 仓库地址，不按中文名猜 URL。
 - 规格：15 秒、1080p、60 fps，128 BPM。
@@ -218,6 +227,7 @@
 | 机关、实体材质、空间交接与动作发声 | 重力乐园的 Blender + 解析轨迹 / Bullet + 事件音频 | 能统一几何、摄影、反射、景深和声音事件；需要维护模型、运动、镜头与合成音色，离线渲染成本更高，材质观感与动力学精度应分别判断 |
 | 三维材质特写与程序图形、字幕混合的概念短片 | Carbon 的 Blender 镜头底片 + Objective-C++ 全片合成 + 分层声音 | 只把需要实体材质和镜头空间的段落交给 Blender，其余画面与后期保留程序控制；要统一帧率、颜色和片段边界，当前实现依赖 Apple 框架 |
 | 实体材质镜头与大规模粒子、星海混合的概念短片 | Hydrogen 的 Cycles 底片 + MLX 数值绘图 + Python 统一后期 | 按镜头类型和分辨率分配算力，避免所有画面都走路径追踪；需核对色调、叠化预留帧与多处时间安排，缓存有效性目前需人工管理 |
+| 粒子高潮、音乐驱动特效与动态画幅 | Neon 的 Cycles／MLX 分镜 + 逐帧音频包络 + 动态遮幅 | 音乐可驱动高光，画幅可跟随重拍；改节奏要一并核对切点、遮幅和音频驱动，换旁白不一定要重渲 |
 
 - 一只纸鸟与重力乐园都围绕事件组织声画，但前者先写同一份事件表驱动画面与拟音，另叠独立采样配乐；后者从已写入场景的动画特征提取／匹配声音事件，并以合成音色构成声音。不要把“程序化”混同为同一种音源或接触验证。迁移纸鸟方案时优先复用事件结构、屏幕位置 probe 和分层混音思路，再单独适配纸件几何、摄影与素材许可。
 - 重力乐园可借鉴的组织方式是“共享时间轴 → 几何／运动 → 动画事件 → 声音 → 独立渲染与编码”，以及把对象音色标签、镜头参数、事件数据和质检数据显式保存。它当前是项目内脚本组合，不是其他作品可以直接接入的通用引擎。
