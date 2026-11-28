@@ -1,6 +1,6 @@
 # 视频项目技术索引
 
-更新：2026-11-24。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
+更新：2026-11-28。用途：以后讨论现有视频制作方案时，先查本索引；事实变化及时更新，旧状态先复核。按实际成片管线区分素材、绘图引擎、动画编排、声音和导出，不把旧代码或同仓库另一部片子的实现混入。
 
 既有项目以各条标注的源码、成片或发布元数据为证据，核查日期与实测范围分别保留；本文更新不代表重新运行全部项目。未恢复的文件名、版本、音源或规格不凭同源关系补全，制作方式未确认的外部演示不列入。
 
@@ -194,6 +194,14 @@
 - **构建与复用边界**：`make video` 先跑 Cycles 底片，再逐镜合成、编码和拼接为 H.264 High@L5.1 / AAC、BT.709 SDR；内部浮点光场不是 HDR 交付。`make audio` 可用已有旁白和随仓声库重建混音。当前缓存按片段文件大小决定跳过，缺少单帧还可能以首／末帧替代；改参数后宜隔离旧缓存并检查接片。可复用双引擎分工及帧级音画映射，目前不是通用时间线框架。
 - 固定源码证据：[Blender 底片](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/blender_cinema_shots.py)、[MLX 绘图](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/mlx_neon_cosmos.py)、[光学后期](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/optical_compositor.py)、[镜头与导出](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/master_render_and_assemble.py)、[声音与包络](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/scripts/build_master_audio.py)、[构建入口](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/Makefile)、[母版校验](https://github.com/SherlockGy/gemini-neon/blob/3b4856a59f406a01321293c6ede4ba816a9b7291/SHA256SUMS)。本次核查 README、源码与时间表，未下载母版重测或重渲全片。
 
+### Motion Designer Showreel 2026
+
+- 仓库：[SherlockGy/motion-showreel-2026](https://github.com/SherlockGy/motion-showreel-2026)，核查提交：`cb5911f5581ccb70c538480bf4e0c700f65f0ab2`；核查日期：2026-11-28。[v1.0.0 成片](https://github.com/SherlockGy/motion-showreel-2026/releases/tag/v1.0.0)为 15 秒、1920×1080、60 fps，H.264 + AAC。七幕动效由代码绘制，不依赖 Blender 底片或生成式视频模型。
+- **二维设计和三维材质分层**：Canvas 2D 负责排版、几何图形与界面内容；WebGL2 着色器负责液态金属、色散玻璃和流场。界面内容通过逆单应性矩阵投到有透视的平面，不用把每个 UI 元素做成三维物件。合成在 `RGBA16F` 上做光效与 180° 快门的多子帧累加；最终输出标记为 BT.709 SDR，内部浮点合成不等于 HDR 交付。
+- **同一拍点编排，另留逐帧声音驱动**：声音脚本离线合成电子配乐与转场拟音，输出 48 kHz / 24-bit 立体声 WAV 和逐帧 Kick、Snare、Bass、High、RMS 包络。画面既用 128 BPM 的拍点排切镜，也读取包络控制部分图形和光效。改节奏时要一起核对七幕切点、声音事件和包络；音画共用节拍参数，不是所有事件只写在一张表里。
+- **交付与复用**：Node.js 用固定帧号驱动无头 Chrome 截图，PNG 经管道交给 FFmpeg，可先用 16 帧预览核对构图，再输出 900 帧成片。适合排版、界面动效与抽象三维材质混在同一支短片；当前导出脚本使用 macOS 的 Chrome 路径及 ANGLE Metal，并需要 WebGL2 浮点渲染扩展，不能直接当作跨平台模板。
+- 固定源码证据：[项目说明](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/README.md)、[二维编排](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/src/scenes2d.js)、[合成引擎](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/src/engine.js)、[着色器](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/src/shaders.js)、[音频合成](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/src/audio.mjs)、[导出入口](https://github.com/SherlockGy/motion-showreel-2026/blob/cb5911f5581ccb70c538480bf4e0c700f65f0ab2/src/render.mjs)。本次核查源码与 Release 元数据，未下载成片重测或重渲。
+
 ## 上传项目：点·线·面
 - 来源：用户上传压缩包；包内已有 点线面_v002.mp4。尚未恢复可核对的 GitHub 仓库地址，不按中文名猜 URL。
 - 规格：15 秒、1080p、60 fps，128 BPM。
@@ -228,6 +236,7 @@
 | 三维材质特写与程序图形、字幕混合的概念短片 | Carbon 的 Blender 镜头底片 + Objective-C++ 全片合成 + 分层声音 | 只把需要实体材质和镜头空间的段落交给 Blender，其余画面与后期保留程序控制；要统一帧率、颜色和片段边界，当前实现依赖 Apple 框架 |
 | 实体材质镜头与大规模粒子、星海混合的概念短片 | Hydrogen 的 Cycles 底片 + MLX 数值绘图 + Python 统一后期 | 按镜头类型和分辨率分配算力，避免所有画面都走路径追踪；需核对色调、叠化预留帧与多处时间安排，缓存有效性目前需人工管理 |
 | 粒子高潮、音乐驱动特效与动态画幅 | Neon 的 Cycles／MLX 分镜 + 逐帧音频包络 + 动态遮幅 | 音乐可驱动高光，画幅可跟随重拍；改节奏要一并核对切点、遮幅和音频驱动，换旁白不一定要重渲 |
+| 排版、透视 UI 与抽象材质同屏的短动效 | Showreel 的 Canvas 2D + WebGL2 着色器 + 帧级音频包络 | 让程序精确控制排版、切镜与光效，不必搭完整三维场景；自写材质与合成要维护着色器，当前导出脚本面向 macOS |
 
 - 一只纸鸟与重力乐园都围绕事件组织声画，但前者先写同一份事件表驱动画面与拟音，另叠独立采样配乐；后者从已写入场景的动画特征提取／匹配声音事件，并以合成音色构成声音。不要把“程序化”混同为同一种音源或接触验证。迁移纸鸟方案时优先复用事件结构、屏幕位置 probe 和分层混音思路，再单独适配纸件几何、摄影与素材许可。
 - 重力乐园可借鉴的组织方式是“共享时间轴 → 几何／运动 → 动画事件 → 声音 → 独立渲染与编码”，以及把对象音色标签、镜头参数、事件数据和质检数据显式保存。它当前是项目内脚本组合，不是其他作品可以直接接入的通用引擎。

@@ -1,6 +1,6 @@
 # 知识归档
 
-更新：2026-11-24。各主题的研究与核查日期见索引和正文。
+更新：2026-11-28。各主题的研究与核查日期见索引和正文。
 
 本仓库面向 ChatGPT Dots，作为其为用户查阅、维护和持续更新的知识档案库。将已讨论清楚、值得长期复用的内容按主题整理，支持不断新增主题和更新已有档案；使用时先查统一索引，再按证据日期与适用范围引用。
 
@@ -14,7 +14,7 @@ ChatGPT Dots 使用本仓库前，先阅读[知识归档工作流](WORKFLOW.md)�
 
 ### 视频制作（video_production）
 
-- [视频制作方案与项目](topics/video_production/video_project_tech_index.md)：实际成片引擎、素材、动画、声音与输出，含 Blender 事件音频、Three.js 立体书，Carbon 的三维底片／程序合成、换声与画面驱动分离，以及 Hydrogen 与 Neon 的 Cycles／MLX 混合绘图、逐帧音画联动、动态画幅与横向选型；关键词：视频制作、成片管线、Blender、Three.js、Objective-C++、MLX、共享事件表、拟音、混音、导出；正文最后更新 2026-11-24，Neon 源码核查于同日，Hydrogen 与 Carbon 分别核查于 2026-11-18、2026-11-16，既有项目保留各自的证据日期与验证范围。
+- [视频制作方案与项目](topics/video_production/video_project_tech_index.md)：实际成片引擎、素材、动画、声音与输出，含 Blender 事件音频、Three.js 立体书，Carbon 的三维底片／程序合成、换声与画面驱动分离，以及 Hydrogen 与 Neon 的 Cycles／MLX 混合绘图、逐帧音画联动、动态画幅、Showreel 的 WebGL2／Canvas 2D 混合渲染及横向选型；关键词：视频制作、成片管线、Blender、Three.js、Objective-C++、MLX、WebGL2、共享事件表、拟音、混音、导出；正文最后更新及 Showreel 源码核查均为 2026-11-28，Neon 源码核查于同日，Hydrogen 与 Carbon 分别核查于 2026-11-18、2026-11-16，既有项目保留各自的证据日期与验证范围。
 
 - [Hugging Face 3D 模型资源：ABO 与 SimReady](topics/video_production/three_d_model_resources.md)：三个资源入口、官方与社区转换版关系、GLB／USD 格式、容量口径及 CC BY 4.0 署名要求；关键词：3D 模型、Hugging Face、ABO、SimReady、GLB、USD、Three.js、模型素材；正文最后更新及公开资料核查均为 2026-11-06，仅归档链接与使用说明，未全量下载或实测资产。
 
